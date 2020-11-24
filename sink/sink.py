@@ -151,7 +151,6 @@ def start_sink():
 
 				print("business_finished")
 				print("business_result: ")
-				print(ordered_by_value)
 				print(top_10_citys)
 			return
 		body = body.decode("utf-8")
