@@ -1,0 +1,217 @@
+version: '3'
+services:
+  rabbitmq:
+    build:
+      context: ./rabbitmq
+      dockerfile: rabbitmq.dockerfile
+    ports:
+      - 15672:15672
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:15672"]
+        interval: 10s
+        timeout: 5s
+        retries: 10
+
+  producer:
+    build:
+      context: ./producer
+      dockerfile: producer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    volumes:
+      - myvolume:/data
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - N_BASIC_CONSUMERS=3
+      - N_STAR_CONSUMERS=2
+      - N_DAY_CONSUMERS=2
+      - N_TEXT_CONSUMERS=2
+      - N_BUSINESS_CONSUMERS=2
+
+  business_producer:
+    build:
+      context: ./business_producer
+      dockerfile: business_producer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    volumes:
+      - myvolume:/data
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  consumer0:
+    build:
+      context: ./consumer
+      dockerfile: consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=0
+
+  consumer1:
+    build:
+      context: ./consumer
+      dockerfile: consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=1
+
+  consumer2:
+    build:
+      context: ./consumer
+      dockerfile: consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=2
+
+  star_consumer0:
+    build:
+      context: ./star_consumer
+      dockerfile: star_consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=0
+
+  star_consumer1:
+    build:
+      context: ./star_consumer
+      dockerfile: star_consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=1
+
+
+  text_consumer0:
+    build:
+      context: ./text_consumer
+      dockerfile: text_consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=0
+
+
+  text_consumer1:
+    build:
+      context: ./text_consumer
+      dockerfile: text_consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=1
+
+
+
+  business_consumer0:
+    build:
+      context: ./business_consumer
+      dockerfile: business_consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=0
+
+
+  business_consumer1:
+    build:
+      context: ./business_consumer
+      dockerfile: business_consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=1
+
+  day_consumer0:
+    build:
+      context: ./day_consumer
+      dockerfile: day_consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=0
+
+  day_consumer1:
+    build:
+      context: ./day_consumer
+      dockerfile: day_consumer.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=1
+
+
+
+  sink:
+    build:
+      context: ./sink
+      dockerfile: sink.dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - N_BASIC_CONSUMERS=3
+      - N_STAR_CONSUMERS=2
+      - N_DAY_CONSUMERS=2
+      - N_TEXT_CONSUMERS=2
+      - N_BUSINESS_CONSUMERS=2
+
+volumes:
+  myvolume:
+    external: true
