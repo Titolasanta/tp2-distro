@@ -30,8 +30,14 @@ middleware = md.Middleware()
 with open('data/yelp_academic_dataset_review.json', 'rb') as f:
 	i = 0
 	for item in json_lines.reader(f):
-		if(i==200000 ):
-			print(i)
+		if(i==20000):
+			middleware.send_to_queue(STAR_COUNTER_QUEUE,"EOF",N_STAR_CONSUMERS)
+			middleware.send_to_queue(BASIC_COUNTER_QUEUE,"EOF",N_BASIC_CONSUMERS)
+			middleware.send_to_queue(DAY_COUNTER_QUEUE,"EOF",N_DAY_CONSUMERS)
+			middleware.send_to_queue(TEXT_COUNTER_QUEUE,"EOF",N_TEXT_CONSUMERS)
+			middleware.send_to_queue(BUSINESS_COUNTER_QUEUE,"EOF",N_BUSINESS_CONSUMERS)
+			#print(i)
+			break
 		i = i + 1
 		middleware.send_to_queue(BASIC_COUNTER_QUEUE,item["user_id"],N_BASIC_CONSUMERS,item["user_id"])
 		
@@ -44,9 +50,4 @@ with open('data/yelp_academic_dataset_review.json', 'rb') as f:
 		middleware.send_to_queue(TEXT_COUNTER_QUEUE,item["user_id"]+","+str(item["text"]),N_TEXT_CONSUMERS,item["user_id"])
 		middleware.send_to_queue(BUSINESS_COUNTER_QUEUE,item["business_id"]+","+str(item["funny"]),N_BUSINESS_CONSUMERS,item["business_id"])
 
-middleware.send_to_queue(STAR_COUNTER_QUEUE,"EOF",N_STAR_CONSUMERS)
-middleware.send_to_queue(BASIC_COUNTER_QUEUE,"EOF",N_BASIC_CONSUMERS)
-middleware.send_to_queue(DAY_COUNTER_QUEUE,"EOF",N_DAY_CONSUMERS)
-middleware.send_to_queue(TEXT_COUNTER_QUEUE,"EOF",N_TEXT_CONSUMERS)
-middleware.send_to_queue(BUSINESS_COUNTER_QUEUE,"EOF",N_BUSINESS_CONSUMERS)
 		
