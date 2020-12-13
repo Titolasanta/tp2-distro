@@ -6,6 +6,7 @@ print("creando: " + sys.argv[2] + "star consumers")
 print("creando: " + sys.argv[3] + "text consumers")
 print("creando: " + sys.argv[4] + "business consumers")
 print("creando: " + sys.argv[5] + "day consumers")
+print("creando: " + sys.argv[6] + "producers")
 
 f = open("docker.fake","w")
 f.write('version: '+"'3'"+'\nservices:\n\
@@ -22,10 +23,49 @@ f.write('version: '+"'3'"+'\nservices:\n\
         retries: 10\n\
 ')
 
-f.write("\n\n  producer:\n\
+for i in range(0,int(argv[6])):
+  if(argv[6] == "1"):
+    id = ""
+  else:
+    id = str(i)
+
+  f.write("\n\n  producer"+id+":\n\
+      build:\n\
+        context: ./producer\n\
+        dockerfile: producer.dockerfile\n\
+      restart: on-failure\n\
+      depends_on:\n\
+        - rabbitmq\n\
+      links: \n\
+        - rabbitmq\n\
+      environment:\n\
+        - ID="+id+"\n\
+        - PYTHONUNBUFFERED=1\n\
+        - N_BASIC_CONSUMERS=" + argv[1]+ "\n\
+        - N_STAR_CONSUMERS=" + argv[2] + "\n\
+        - N_DAY_CONSUMERS=" + argv[5] + "\n\
+        - N_TEXT_CONSUMERS=" + argv[3] + "\n\
+        - N_BUSINESS_CONSUMERS=" + argv[4])
+
+f.write("\n\n\
+  delivery:\n\
     build:\n\
-      context: ./producer\n\
-      dockerfile: producer.dockerfile\n\
+      context: ./delivery\n\
+      dockerfile: delivery.dockerfile\n\
+    restart: on-failure\n\
+    depends_on:\n\
+      - rabbitmq\n\
+    links: \n\
+      - rabbitmq\n\
+    environment:\n\
+      - N_PRODUCERS="+argv[6]+"\n\
+      - PYTHONUNBUFFERED=1\n")
+
+f.write("\n\n\
+  client:\n\
+    build:\n\
+      context: ./client\n\
+      dockerfile: client.dockerfile\n\
     restart: on-failure\n\
     depends_on:\n\
       - rabbitmq\n\
@@ -34,13 +74,7 @@ f.write("\n\n  producer:\n\
     links: \n\
       - rabbitmq\n\
     environment:\n\
-      - PYTHONUNBUFFERED=1\n\
-      - N_BASIC_CONSUMERS=" + argv[1]+ "\n\
-      - N_STAR_CONSUMERS=" + argv[2] + "\n\
-      - N_DAY_CONSUMERS=" + argv[5] + "\n\
-      - N_TEXT_CONSUMERS=" + argv[3] + "\n\
-      - N_BUSINESS_CONSUMERS=" + argv[4])
-
+      - PYTHONUNBUFFERED=1")
 
 f.write("\n\n\n  business_producer:\n\
     build:\n\
@@ -49,8 +83,6 @@ f.write("\n\n\n  business_producer:\n\
     restart: on-failure\n\
     depends_on:\n\
       - rabbitmq\n\
-    volumes:\n\
-      - myvolume:/data\n\
     links: \n\
       - rabbitmq\n\
     environment:\n\
@@ -71,6 +103,7 @@ for i in range(0,int(argv[1])):
     links: \n\
       - rabbitmq\n\
     environment:\n\
+      - N_PRODUCERS="+argv[6]+"\n\
       - PYTHONUNBUFFERED=1\n\
       - ID="+id)
 
@@ -90,6 +123,7 @@ for i in range(0,int(argv[2])):
     links: \n\
       - rabbitmq\n\
     environment:\n\
+      - N_PRODUCERS="+argv[6]+"\n\
       - PYTHONUNBUFFERED=1\n\
       - ID=" + id )
 
@@ -108,6 +142,7 @@ for i in range(0,int(argv[3])):
     links: \n\
       - rabbitmq\n\
     environment:\n\
+      - N_PRODUCERS="+argv[6]+"\n\
       - PYTHONUNBUFFERED=1\n\
       - ID="+id)
 
@@ -128,6 +163,7 @@ for i in range(0,int(argv[4])):
     links: \n\
       - rabbitmq\n\
     environment:\n\
+      - N_PRODUCERS="+argv[6]+"\n\
       - PYTHONUNBUFFERED=1\n\
       - ID="+id)
 
@@ -146,6 +182,7 @@ for i in range(0,int(argv[5])):
     links: \n\
       - rabbitmq\n\
     environment:\n\
+      - N_PRODUCERS="+argv[6]+"\n\
       - PYTHONUNBUFFERED=1\n\
       - ID="+id)
 

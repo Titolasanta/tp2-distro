@@ -3,10 +3,13 @@ import pika
 import time
 import middleware as md
 import os
+import pickle
 
 BASIC_SINK_QUEUE = "basic_sink"
 
 BASIC_COUNTER_QUEUE = "basic_counter_queue"
+N_PRODUCERS = os.environ["N_PRODUCERS"]
+N_PRODUCERS = int(N_PRODUCERS)
 
 id = ""
 try:
@@ -29,19 +32,27 @@ def remit_dic(dic,queue_name):
 			middleware.send_to_queue(queue_name,msg )
 
 	middleware.send_to_queue(queue_name,"EOF" )
+	middleware.flush()
 
+
+eof_recived = [0]
 def callback(ch, method, properties, body):
-	if(body.decode("utf-8") == "EOF"):
-		print("entre")
-		remit_dic(count,BASIC_SINK_QUEUE)
-		return
-	else:
-		body = body.decode("utf-8")
-		
-		if body in count:
-			count[body] = count[body]+1
+
+
+	recived_list = pickle.loads(body)
+	for body in recived_list:
+		if(body == "EOF"):
+			eof_recived[0]=eof_recived[0]+1
+			if(eof_recived[0] == N_PRODUCERS):
+				remit_dic(count,BASIC_SINK_QUEUE)
+			
 		else:
-			count[body] = 1
+			body = body
+			
+			if body in count:
+				count[body] = count[body]+1
+			else:
+				count[body] = 1
 
 middleware.set_callback_with_ack(callback,BASIC_COUNTER_QUEUE+id)
 middleware.start()
